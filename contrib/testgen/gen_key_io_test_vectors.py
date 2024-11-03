@@ -14,9 +14,9 @@ Usage:
 import os
 from itertools import islice
 from base58 import b58encode_chk, b58decode_chk, b58chars
-import random
 from binascii import b2a_hex
 from segwit_addr import bech32_encode, decode, convertbits, CHARSET
+import secrets
 
 # key types
 PUBKEY_ADDRESS = 0
@@ -163,7 +163,7 @@ def gen_invalid_base58_vector(template):
         prefix = bytearray(template[0])
 
     if randomize_payload_size:
-        payload = os.urandom(max(int(random.expovariate(0.5)), 50))
+        payload = os.urandom(max(int(secrets.SystemRandom().expovariate(0.5)), 50))
     else:
         payload = os.urandom(template[1])
 
@@ -173,12 +173,12 @@ def gen_invalid_base58_vector(template):
         suffix = bytearray(template[2])
 
     val = b58encode_chk(prefix + payload + suffix)
-    if random.randint(0,10)<1: # line corruption
+    if secrets.SystemRandom().randint(0,10)<1: # line corruption
         if randbool(): # add random character to end
-            val += random.choice(b58chars)
+            val += secrets.choice(b58chars)
         else: # replace random character in the middle
-            n = random.randint(0, len(val))
-            val = val[0:n] + random.choice(b58chars) + val[n+1:]
+            n = secrets.SystemRandom().randint(0, len(val))
+            val = val[0:n] + secrets.choice(b58chars) + val[n+1:]
 
     return val
 
@@ -202,10 +202,10 @@ def gen_invalid_bech32_vector(template):
         rv = bech32_encode(hrp, data)
 
     if template[4]:
-        i = len(rv) - random.randrange(1, 7)
-        rv = rv[:i] + random.choice(CHARSET.replace(rv[i], '')) + rv[i + 1:]
+        i = len(rv) - secrets.SystemRandom().randrange(1, 7)
+        rv = rv[:i] + secrets.choice(CHARSET.replace(rv[i], '')) + rv[i + 1:]
     if template[5]:
-        i = len(hrp) + 1 + random.randrange(0, len(rv) - len(hrp) - 4)
+        i = len(hrp) + 1 + secrets.SystemRandom().randrange(0, len(rv) - len(hrp) - 4)
         rv = rv[:i] + rv[i:i + 4].upper() + rv[i + 4:]
 
     if to_upper:
@@ -215,7 +215,7 @@ def gen_invalid_bech32_vector(template):
 
 def randbool(p = 0.5):
     '''Return True with P(p)'''
-    return random.random() < p
+    return secrets.SystemRandom().random() < p
 
 def gen_invalid_vectors():
     '''Generate invalid test vectors'''
